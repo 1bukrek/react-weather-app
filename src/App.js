@@ -2,7 +2,10 @@ import React, { useState } from "react"
 import axios from "axios"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faLocationDot, faCloudBolt } from "@fortawesome/free-solid-svg-icons"
+import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
+import { Form, ListGroup } from "react-bootstrap"
+
+import "./App.css"
 
 function WeatherApp() {
     const [weatherData, setWeatherData] = useState({})
@@ -11,30 +14,29 @@ function WeatherApp() {
 
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${locationData}&appid=f1032ef34fa5f2895e4d4258da67b24d&units=metric`
 
-    // Fetch weather based on the city name
+    // fetch weather based on the city name
     const fetchWeather = () => {
         axios
             .get(url)
             .then((response) => {
                 setWeatherData(response.data);
-                console.log(response.data);
             })
             .catch((error) => {
                 console.error("ERROR FETCHING WEATHER DATA:", error);
             });
     };
 
-    // Handle city input change and provide suggestions
+    // handle city input change and provide suggestions
     const handleInputChange = (event) => {
         const query = event.target.value;
         setLocationData(query);
 
         if (query.length > 1) {
-            // Fetch city suggestions from the geocoding API
+            // fetch city suggestions from the geocoding API
             axios
                 .get(`https://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=5&appid=f1032ef34fa5f2895e4d4258da67b24d`)
                 .then((response) => {
-                    setSuggestions(response.data.slice(0, 3)); 
+                    setSuggestions(response.data.slice(0, 3));
                 })
                 .catch((error) => {
                     console.error("ERROR FETCHING CITY SUGGESTIONS:", error);
@@ -44,11 +46,11 @@ function WeatherApp() {
         }
     };
 
-    // Handle city selection
+    // handle city selection
     const handleCitySelect = (city) => {
-        setLocationData(city.name); // Set the selected city
-        setSuggestions([]); // Clear suggestions
-        fetchWeather(); // Fetch the weather data for the selected city
+        setLocationData(city.name); // set the selected city
+        setSuggestions([]); // clear suggestions
+        fetchWeather(); // fetch the weather data for the selected city
     };
 
     /* const searchLocationData = (event) => {
@@ -71,59 +73,58 @@ function WeatherApp() {
     let date_text = `${months[date.getMonth()]} ${date.getDate()}, ${date.toLocaleTimeString()}`
 
     return (
-        <div className="app">
-            <div className="title">
-            <FontAwesomeIcon className="title-icon" icon={faCloudBolt} /> <h1>weather app</h1> <br></br>
+        <div>
+            <div className="text-center text-warning text-opacity-75" style={{ marginTop: "5rem" }}>
+                <p className="display-3">weather</p>
             </div>
-            <div className="search">
-                <input type="text" placeholder="Enter City Name" value={locationData} onChange={handleInputChange} onKeyDown={(event) => {
-                    if (event.key === "Enter" && locationData) {
-                        fetchWeather();
-                        setSuggestions([]); // Clear suggestions when Enter is pressed
-                    }
-                }}
+            <div className="w-25 mx-auto container col-md-5 ms-md-auto" style={{ marginTop: "12rem" }}>
+                <Form.Control
+                    type="text"
+                    placeholder="Enter city name"
+                    value={locationData}
+                    onChange={handleInputChange}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter" && locationData) {
+                            fetchWeather();
+                            setSuggestions([]); // clear suggestions when enter is pressed
+                        }
+                    }}
+                    className="bg-transparent border border-warning text-warning-emphasis"
                 />
                 {suggestions.length > 0 && (
-                    <ul className="suggesstions-list">
+                    <ListGroup className="border-warning">
                         {suggestions.map((city, index) => (
-                            <li key={index} onClick={() => handleCitySelect(city)} className="p-2 hover:bg-gray-200 cursor-pointer">
+                            <ListGroup.Item className="bg-transparent mt-1 list-group-item-action border-warning" key={index} onClick={() => handleCitySelect(city)} >
                                 {city.name}, {city.country}
-                            </li>
+                            </ListGroup.Item>
                         ))}
-                    </ul>
+                    </ListGroup>
                 )}
             </div>
 
             {weatherData.name !== undefined &&
-                <div className="container">
-                    <div className="top">
-                        <div className="location">
-                            <FontAwesomeIcon className="location-icon" icon={faLocationDot} /> <p>{weatherData.name}</p>
+                <div className="w-25 mx-auto container col-md-5 ms-md-auto bg-transparent p-2 px-4 rounded-3 mt-3 border border-warning">
+                    <div className="mt-3">
+                        <div className="row" >
+                            <FontAwesomeIcon className="location-icon col-1 p-0 text-warning" style={{ marginTop: "0.4rem", fontSize: "1.5rem" }} icon={faLocationDot} /> <p style={{ fontSize: "1.5rem" }} className="col-6 mx-auto p-0 text-warning"><strong>{weatherData.name}</strong></p>
+                            <p className="col text-end text-warning">{date_text}</p>
                         </div>
-                        <div className="date">
-                            <p>{date_text}</p>
-                        </div>
-                        <div className="temperature">
-                            {weatherData.main ? <p>{weatherData.main.temp.toFixed()}°C</p> : null}
-                        </div>
+                        {weatherData.main ? <p className="text-end mb-0 text-warning" style={{ fontSize: "4rem" }}>{weatherData.main.temp.toFixed()}°C</p> : null}
                     </div>
-                    <div className="bottom">
-                        <div className="description">
+                    <hr className="mt-0 mb-1 text-warning"></hr>
+                    <div className="row text-warning-emphasis">
+                        <div className="col">
                             <p>{weatherData.weather[0].description.charAt(0).toUpperCase() + weatherData.weather[0].description.slice(1)}</p>
+                            {weatherData.main ? <p>Feels like <strong>{weatherData.main.feels_like.toFixed()}°C</strong></p> : null}
                         </div>
-                        <div className="feels">
-                            {weatherData.main ? <p>Feels like {weatherData.main.feels_like.toFixed()}°C</p> : null}
-                        </div>
-                        <div className="humidity">
-                            {weatherData.main ? <p>Humidity: {weatherData.main.humidity.toFixed()}%</p> : null}
-                        </div>
-                        <div className="wind">
+                        <div className="col text-end">
+                            {weatherData.main ? <p>Humidity: <strong>{weatherData.main.humidity.toFixed()}%</strong></p> : null}
                             {weatherData.wind ? <p>{weatherData.wind.speed.toFixed()} m/s</p> : null}
                         </div>
                     </div>
                 </div>
             }
-        </div>
+        </div >
     )
 }
 
