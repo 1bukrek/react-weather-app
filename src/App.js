@@ -5,8 +5,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { Form, ListGroup } from "react-bootstrap"
 
-import "./App.css"
-
 function WeatherApp() {
     const [weatherData, setWeatherData] = useState({})
     const [locationData, setLocationData] = useState("")
@@ -15,7 +13,8 @@ function WeatherApp() {
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${locationData}&appid=f1032ef34fa5f2895e4d4258da67b24d&units=metric`
 
     // fetch weather based on the city name
-    const fetchWeather = () => {
+    function fetchWeather() {
+        setSuggestions([])
         axios
             .get(url)
             .then((response) => {
@@ -41,31 +40,13 @@ function WeatherApp() {
                 .catch((error) => {
                     console.error("ERROR FETCHING CITY SUGGESTIONS:", error);
                 });
-        } else {
-            setSuggestions([]);
-        }
+        } else setSuggestions([]);
     };
 
-    // handle city selection
-    const handleCitySelect = (city) => {
-        setLocationData(city.name); // set the selected city
-        setSuggestions([]); // clear suggestions
+    function handleCitySelect(city) {
+        setLocationData(city.name.toLowerCase());
         fetchWeather(); // fetch the weather data for the selected city
     };
-
-    /* const searchLocationData = (event) => {
-        if (event.key === "Enter") {
-            axios.get(url)
-                .then((response) => {
-                    setWeatherData(response.data)
-                    console.log(response.data)
-                })
-                .catch(error => {
-                    console.error("ERROR FETHCHING WEATHER DATA:", error)
-                })
-            setLocationData("")
-        }
-    } */
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -74,27 +55,28 @@ function WeatherApp() {
 
     return (
         <div>
-            <div className="text-center text-warning text-opacity-75" style={{ marginTop: "5rem" }}>
+            <div className="text-center" style={{ marginTop: "5rem" }}>
                 <p className="display-3">weather</p>
+                <hr className="w-25 mx-auto" />
             </div>
-            <div className="w-25 mx-auto container col-md-5 ms-md-auto" style={{ marginTop: "12rem" }}>
+            <div className="w-25 mx-auto container col-md-5 ms-md-auto">
                 <Form.Control
                     type="text"
                     placeholder="Enter city name"
                     value={locationData}
                     onChange={handleInputChange}
                     onKeyDown={(event) => {
-                        if (event.key === "Enter" && locationData) {
-                            fetchWeather();
-                            setSuggestions([]); // clear suggestions when enter is pressed
-                        }
+                        if (event.key === "Enter" && locationData) fetchWeather();
                     }}
-                    className="bg-transparent border border-warning text-warning-emphasis"
+                    className="bg-transparent border mb-2"
                 />
                 {suggestions.length > 0 && (
-                    <ListGroup className="border-warning">
+                    <ListGroup>
                         {suggestions.map((city, index) => (
-                            <ListGroup.Item className="bg-transparent mt-1 list-group-item-action border-warning" key={index} onClick={() => handleCitySelect(city)} >
+                            <ListGroup.Item className="bg-transparent list-group-item-action" key={index} onClick={() => {
+                                setLocationData(city.name.toLowerCase());
+                                fetchWeather()
+                            }} >
                                 {city.name}, {city.country}
                             </ListGroup.Item>
                         ))}
@@ -103,16 +85,16 @@ function WeatherApp() {
             </div>
 
             {weatherData.name !== undefined &&
-                <div className="w-25 mx-auto container col-md-5 ms-md-auto bg-transparent p-2 px-4 rounded-3 mt-3 border border-warning">
+                <div className="w-25 mx-auto container col-md-5 ms-md-auto bg-transparent p-2 px-4 rounded-3 mt-3 border">
                     <div className="mt-3">
                         <div className="row" >
-                            <FontAwesomeIcon className="location-icon col-1 p-0 text-warning" style={{ marginTop: "0.4rem", fontSize: "1.5rem" }} icon={faLocationDot} /> <p style={{ fontSize: "1.5rem" }} className="col-6 mx-auto p-0 text-warning"><strong>{weatherData.name}</strong></p>
-                            <p className="col text-end text-warning">{date_text}</p>
+                            <FontAwesomeIcon className="location-icon col-1 p-0" style={{ marginTop: "0.4rem", fontSize: "1.5rem" }} icon={faLocationDot} /> <p style={{ fontSize: "1.5rem" }} className="col-6 mx-auto p-0"><strong>{weatherData.name}</strong></p>
+                            <p className="col text-end ">{date_text}</p>
                         </div>
-                        {weatherData.main ? <p className="text-end mb-0 text-warning" style={{ fontSize: "4rem" }}>{weatherData.main.temp.toFixed()}°C</p> : null}
+                        {weatherData.main ? <p className="text-end mb-0" style={{ fontSize: "4rem" }}>{weatherData.main.temp.toFixed()}°C</p> : null}
                     </div>
-                    <hr className="mt-0 mb-1 text-warning"></hr>
-                    <div className="row text-warning-emphasis">
+                    <hr className="mt-0 mb-1 "></hr>
+                    <div className="row">
                         <div className="col">
                             <p>{weatherData.weather[0].description.charAt(0).toUpperCase() + weatherData.weather[0].description.slice(1)}</p>
                             {weatherData.main ? <p>Feels like <strong>{weatherData.main.feels_like.toFixed()}°C</strong></p> : null}
